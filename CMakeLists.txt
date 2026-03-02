@@ -18,4 +18,5 @@ add_executable(QuantEngine
     src/strategy/MovingAverage.cpp
     src/engine/BackEngine.cpp
     src/analytics/PerformanceAnalyzer.cpp
+    src/engine/ParameterSweep.cpp
 )

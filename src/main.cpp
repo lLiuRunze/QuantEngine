@@ -4,26 +4,42 @@
 #include "core/Portfolio.h"
 #include "core/Position.h"
 #include "analytics/PerformanceAnalyzer.h"
+#include "engine/ParameterSweep.h"
+#include "engine/BacktestConfig.h"
 #include <iostream>
 #include <memory>
+#include <chrono>
 
 int main()
 {
+
     DataGenerator gen;
-    std::vector<double> data = gen.generateData(100, -0.05, 0.2, 5, 0.01);
+    std::vector<double> data = gen.generateData(1000000, -0.05, 0.2, 5, 0.01);
 
-    auto strategy = std::make_unique<MovingAverage>(5); // unique_ptr，自动释放内存
-    Portfolio portfolio(100000.0, {{"SINGLE", Position("SINGLE")}});
-    BackEngine engine(data, std::move(strategy), std::move(portfolio));
-    engine.run();
+    BacktestConfig config;
+    config.initCash = 100000.0;
+    config.initPositions = {{"SINGLE", Position("SINGLE")}};
 
-    std::cout << "Final Portfolio Value: " << engine.getFinalValue() << std::endl;
+    ParameterSweep sweep(data, config);
+    std::vector<int> windows;
+    for (int i = 5; i <= 500; i += 5)
+    {
+        windows.push_back(i);
+    }
 
-    PerformanceAnalyzer analyzer(engine.getEquityCurve());
-    analyzer.calReturns();
-    std::cout << "Total Return: " << analyzer.getTotalReturn() << std::endl;
-    std::cout << "Sharpe Ratio: " << analyzer.getSharpRatio() << std::endl;
-    std::cout << "Max Drawdown: " << analyzer.getMaxDrawdown() << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    auto results = sweep.runBatch(windows,5);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration<double>(end - start);
+    std::cout << "Multi-threaded processing time: " << elapsed.count() << " seconds" << std::endl;
 
+    // start = std::chrono::high_resolution_clock::now();
+    // for (int window : windows)
+    // {
+    //     sweep.runSingle(window);
+    // }
+    // end = std::chrono::high_resolution_clock::now();
+    // elapsed = std::chrono::duration<double>(end - start);
+    // std::cout << "Single-threaded processing time: " << elapsed.count() << " seconds" << std::endl;
     return 0;
 }
