@@ -16,4 +16,6 @@ add_executable(QuantEngine
     src/Position.cpp
     src/Portfolio.cpp
     src/MovingAverage.cpp
+    src/BackEngine.cpp
+    src/PerformanceAnalyzer.cpp
 )

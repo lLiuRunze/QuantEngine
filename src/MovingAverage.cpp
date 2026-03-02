@@ -3,7 +3,8 @@
 void MovingAverage::onBar(double price)
 {
     prices.push_back(price);
-    if (prices.size() < window){
+    if (prices.size() < window)
+    {
         signal = 0;
         return;
     }
@@ -16,15 +17,18 @@ void MovingAverage::onBar(double price)
         sum += p;
     double avg = prices.empty() ? 0.0 : sum / prices.size();
 
-    if (price > avg && lastPrice <= lastAvg){
-        signal = 1; 
+    if (price > avg && lastPrice <= lastAvg)
+    {
+        signal = 1;
     }
-        
-    else if (price < avg && lastPrice >= lastAvg){
+
+    else if (price < avg && lastPrice >= lastAvg)
+    {
         signal = -1;
     }
-        
-    else{
+
+    else
+    {
         signal = 0;
     }
     lastPrice = price;

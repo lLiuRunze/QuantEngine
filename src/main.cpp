@@ -5,12 +5,14 @@
 #include "Position.h"
 #include "Portfolio.h"
 #include "MovingAverage.h"
+#include "BackEngine.h"
+#include "PerformanceAnalyzer.h"
 #include <iostream>
 
 int main()
 {
     DataGenerator gen;
-    vector<double> data = gen.generateData(10, 0.05, 0.2, 5, 0.01);
+    vector<double> data = gen.generateData(100, -0.05, 0.2, 5, 0.01);
     // for(auto price :data){
     //     std::cout << price << std::endl;
     // }
@@ -65,26 +67,14 @@ int main()
 
     Strategy *strategy = new MovingAverage(5);
     Portfolio portfolio(100000.0, {{"SINGLE", Position("SINGLE")}});
-    for(int i = 0; i < data.size(); i++){
-        double price = data[i];
-        strategy->onBar(price);
-        int signal = strategy->getSignal();
-        if (signal ==1){
-            Order buyorder("SINGLE", 100, price);
-            portfolio.executeOrder(buyorder, price, std::to_string(i));
-        }
-        if(signal == -1){
-            Order sellorder("SINGLE", -100, price);
-            portfolio.executeOrder(sellorder, price, std::to_string(i));
-        }
-    }
-    std::cout << "Final Portfolio Value: " << portfolio.getTotalValue(data.back()) << std::endl;
-    std::cout << "Trade History:" << std::endl;
-    for (const auto &trade : portfolio.getTradeHistory()) {
-        std::cout << "Symbol: " << trade.getSymbol() << ", Quantity: " << trade.getQuantity() << ", Price: " << trade.getPrice() << ", Time: " << trade.getTime() << std::endl;
-    }
-    std::cout << "Final return " << (portfolio.getTotalValue(data.back()) - 100000.0) / 100000.0 * 100 << "%" << std::endl;
+    BackEngine engine(data, strategy, portfolio);
+    engine.run();
+    std::cout << "Final Portfolio Value: " << engine.getFinalValue() << std::endl;
+    PerformanceAnalyzer analyzer(engine.getEquityCurve());
+    analyzer.calReturns();
+    std::cout << "Total Return: " << analyzer.getTotalReturn() << std::endl;
+    std::cout << "Sharpe Ratio: " << analyzer.getSharpRatio() << std::endl;
+    std::cout << "Max Drawdown: " << analyzer.getMaxDrawdown() << std::endl;
     delete strategy;
-
     return 0;
 }
