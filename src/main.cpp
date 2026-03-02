@@ -1,80 +1,29 @@
-#include "DataGenerator.h"
-#include "CSVLoader.h"
-#include "Order.h"
-#include "Trade.h"
-#include "Position.h"
-#include "Portfolio.h"
-#include "MovingAverage.h"
-#include "BackEngine.h"
-#include "PerformanceAnalyzer.h"
+#include "data/DataGenerator.h"
+#include "strategy/MovingAverage.h"
+#include "engine/BackEngine.h"
+#include "core/Portfolio.h"
+#include "core/Position.h"
+#include "analytics/PerformanceAnalyzer.h"
 #include <iostream>
+#include <memory>
 
 int main()
 {
     DataGenerator gen;
-    vector<double> data = gen.generateData(100, -0.05, 0.2, 5, 0.01);
-    // for(auto price :data){
-    //     std::cout << price << std::endl;
-    // }
-    // gen.saveToCSV(data, "/Users/liurunze/Desktop/file/DA/QR/QuantEngine/data/generated_data.csv");
+    std::vector<double> data = gen.generateData(100, -0.05, 0.2, 5, 0.01);
 
-    // CSVLoader loader;
-    // vector<double> loadedData = loader.load("/Users/liurunze/Desktop/file/DA/QR/QuantEngine/data/generated_data.csv");
-    // std::cout << "Loaded Data:" << std::endl;
-    // for (const auto& price : loadedData) {
-    //     std::cout << price << std::endl;
-    // }
-
-    // Order order("SINGLE", 100, 10.5);
-    // std::cout << "Order Details:" << std::endl;
-    // std::cout << "Symbol: " << order.getSymbol() << std::endl;
-    // std::cout << "Quantity: " << order.getQuantity() << std::endl;
-    // std::cout << "Price: " << order.getPrice() << std::endl;
-
-    // Trade trade("SINGLE", 100, 10.5, "2024-06-01 10:00:00");
-    // Trade trade2("SINGLE", -50, 11.0, "2024-06-01 11:00:00");
-    // Trade trade3("SINGLE", 30, 9.5, "2024-06-01 12:00:00");
-    // std::cout << "Trade Details:" << std::endl;
-    // std::cout << "Symbol: " << trade.getSymbol() << std::endl;
-    // std::cout << "Quantity: " << trade.getQuantity() << std::endl;
-    // std::cout << "Price: " << trade.getPrice() << std::endl;
-    // std::cout << "Time: " << trade.getTime() << std::endl;
-    // Position position("SINGLE");
-    // position.update(trade);
-    // position.update(trade2);
-    // position.update(trade3);
-    // std::cout << "Position Details:" << std::endl;
-    // std::cout << "Symbol: " << position.getSymbol() << std::endl;
-    // std::cout << "Quantity: " << position.getQuantity() << std::endl;
-    // std::cout << "Average Price: " << position.getAvgPrice() << std::endl;
-
-    // Portfolio portfolio(100000.0, {{"SINGLE", position}});
-    // portfolio.executeOrder(Order("SINGLE", 100, 10.5), 10.5, "2024-06-01 10:00:00");
-    // portfolio.executeOrder(Order("SINGLE", -50, 11.0), 11.0, "2024-06-01 11:00:00");
-    // portfolio.executeOrder(Order("SINGLE", 30, 9.5), 9.5, "2024-06-01 12:00:00");
-    // std::cout << "Portfolio Details:" << std::endl;
-    // std::cout << "Cash: " << portfolio.getCash() << std::endl;
-    // std::cout << "Total Value: " << portfolio.getTotalValue(10.0) << std::endl; 
-    // std::cout << "Positions:" << std::endl;
-    // for (const auto &entry : portfolio.getPositions()) {
-    //     const Position &pos = entry.second;
-    //     std::cout << "Symbol: " << pos.getSymbol() << ", Quantity: " << pos.getQuantity() << ", Average Price: " << pos.getAvgPrice() << std::endl;
-    // }
-    // std::cout << "Trade History:" << std::endl;
-    // for (const auto &trade : portfolio.getTradeHistory()) {
-    //     std::cout << "Symbol: " << trade.getSymbol() << ", Quantity: " << trade.getQuantity() << ", Price: " << trade.getPrice() << ", Time: " << trade.getTime() << std::endl;
-    // }
-
-    Strategy *strategy = new MovingAverage(5);
+    auto strategy = std::make_unique<MovingAverage>(5); // unique_ptr，自动释放内存
     Portfolio portfolio(100000.0, {{"SINGLE", Position("SINGLE")}});
-    BackEngine engine(data, strategy, portfolio);
+    BackEngine engine(data, std::move(strategy), std::move(portfolio));
     engine.run();
+
     std::cout << "Final Portfolio Value: " << engine.getFinalValue() << std::endl;
+
     PerformanceAnalyzer analyzer(engine.getEquityCurve());
     analyzer.calReturns();
     std::cout << "Total Return: " << analyzer.getTotalReturn() << std::endl;
     std::cout << "Sharpe Ratio: " << analyzer.getSharpRatio() << std::endl;
     std::cout << "Max Drawdown: " << analyzer.getMaxDrawdown() << std::endl;
-    delete strategy;
+
     return 0;
 }

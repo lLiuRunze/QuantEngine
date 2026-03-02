@@ -9,13 +9,13 @@ include_directories(include)
 
 add_executable(QuantEngine
     src/main.cpp
-    src/DataGenerator.cpp
-    src/CSVLoader.cpp
-    src/Order.cpp
-    src/Trade.cpp
-    src/Position.cpp
-    src/Portfolio.cpp
-    src/MovingAverage.cpp
-    src/BackEngine.cpp
-    src/PerformanceAnalyzer.cpp
+    src/data/DataGenerator.cpp
+    src/data/CSVLoader.cpp
+    src/core/Order.cpp
+    src/core/Trade.cpp
+    src/core/Position.cpp
+    src/core/Portfolio.cpp
+    src/strategy/MovingAverage.cpp
+    src/engine/BackEngine.cpp
+    src/analytics/PerformanceAnalyzer.cpp
 )
